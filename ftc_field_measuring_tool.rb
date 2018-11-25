@@ -9,6 +9,9 @@ class Window < Gosu::Window
   CM     = 3
   M      = 4
 
+  LINE = 0 # calculate the straight distance between 2 points
+  ARC  = 1 # calculate the angular distance between 2 points
+
   def initialize
     super(800, 800, fullscreen: false)
     self.caption = "Field Measuring Tool - FTC Rovor Ruckus"
@@ -27,7 +30,8 @@ class Window < Gosu::Window
     @pixel_to_inch = 3.25
     @pixel_to_mm   = @pixel_to_inch / 25.4 # INCH TO MM
 
-    # Round
+    @mode = LINE
+    # Round to nth decimal place for distance
     @r = 2
   end
 
@@ -39,17 +43,21 @@ class Window < Gosu::Window
     # BLUE HALF OF FIELD
     draw_rect(0,0, (@field_image.width * @scale)/2, self.height, Color.rgba(0,0,255, 15), 1)
     # RED HALF OF FIELD
-    draw_rect((@field_image.width * @scale)/2,0, (@field_image.width * @scale)/2, self.height, Color.rgba(255,0,0, 15), 1)
+    draw_rect((@field_image.width * @scale)/2,0, (@field_image.width * @scale)/2, self.height, Color.rgba(255,0,0, 30), 1)
 
     # ORIGIN POINT
     draw_rect(@scale * @origin.x  - 4, @scale * @origin.y - 4, 8, 8, Color::GREEN, 2)
     draw_rect(@scale * @origin.x  - 2, @scale * @origin.y - 2, 4, 4, Color::BLUE, 2)
 
-    # LINE FROM ORIGIN TO MOUSE
-    angle = Gosu.angle(mouse_x, mouse_y, @scale * @origin.x, @scale * @origin.y)
+    if @mode == LINE
+      # LINE FROM ORIGIN TO MOUSE
+      angle = Gosu.angle(mouse_x, mouse_y, @scale * @origin.x, @scale * @origin.y)
 
-    rotate(angle, @scale * @origin.x, @scale * @origin.y) do
-      draw_rect(@scale * @origin.x - 1, @scale * @origin.y, 3, @distance.abs * @scale, Color::WHITE, 4)
+      rotate(angle, @scale * @origin.x, @scale * @origin.y) do
+        draw_rect(@scale * @origin.x - 1, @scale * @origin.y, 3, @distance.abs * @scale, Color::WHITE, 4)
+      end
+    else
+      # ARC FROM ORIGIN TO MOUSE
     end
 
     # DRAW TEXT
@@ -71,7 +79,13 @@ class Window < Gosu::Window
   end
 
   def update
-    @distance = Gosu.distance(@origin.x, @origin.y, mouse_x / @scale, mouse_y / @scale)
+    if @mode == LINE
+      # LINE distance
+      @distance = Gosu.distance(@origin.x, @origin.y, mouse_x / @scale, mouse_y / @scale)
+    else
+      # ARC distance
+      @distance = Gosu.distance(@origin.x, @origin.y, mouse_x / @scale, mouse_y / @scale)
+    end
     @distance_in_inches = (@distance / @pixel_to_inch).round(@r)
     @distance_in_mm = (@distance / @pixel_to_mm).round(@r)
 
@@ -102,6 +116,9 @@ class Window < Gosu::Window
       @origin.x, @origin.y = mouse_x / @scale, mouse_y / @scale
     when Gosu::Kb0
       @origin = Vector2D.new((@field_image.width/2), (@field_image.height/2))
+    when Gosu::KbM
+      @mode+=1
+      @mode = 0# if @mode > 1
     when Gosu::KbTab
       @unit+=1
       @unit = 0 if @unit > 5
