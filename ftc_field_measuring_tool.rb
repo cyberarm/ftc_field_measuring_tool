@@ -1,4 +1,8 @@
-require "gosu"
+begin
+  require_relative "../ffi-gosu/lib/gosu"
+rescue LoadError
+  require "gosu"
+end
 
 class Window < Gosu::Window
   include Gosu
@@ -14,12 +18,16 @@ class Window < Gosu::Window
 
   def initialize
     super(800, 800, fullscreen: false)
-    self.caption = "Field Measuring Tool - FTC Rovor Ruckus"
-    @field_image = Gosu::Image.new("media/rovor_ruckus_field.png", retro: false)
+    self.caption = "Field Measuring Tool - FTC Skystone"
+    @field_image = Gosu::Image.new("media/skystone_field.png", retro: false)
     @font        = Gosu::Font.new(20, name: Gosu.default_font_name, bold: true)
     @distance    = 0
 
-    @scale = self.width.to_f / @field_image.width.to_f
+    width_scale = self.width.to_f / @field_image.width.to_f
+    height_scale = self.height.to_f / @field_image.height.to_f
+
+    @scale = width_scale < height_scale ? width_scale : height_scale
+
     @origin = Vector2D.new((@field_image.width/2), (@field_image.height/2))
 
     @render_ui = true
@@ -27,12 +35,12 @@ class Window < Gosu::Window
 
     # WHAT UNIT TO DISPLAY
     @unit = 0
-    @pixel_to_inch = 3.25
+    @pixel_to_inch = 3.8333
     @pixel_to_mm   = @pixel_to_inch / 25.4 # INCH TO MM
 
     @mode = LINE
     # Round to nth decimal place for distance
-    @r = 2
+    @round_to_nth_decimal = 2
   end
 
   def draw
@@ -86,21 +94,21 @@ class Window < Gosu::Window
       # ARC distance
       @distance = Gosu.distance(@origin.x, @origin.y, mouse_x / @scale, mouse_y / @scale)
     end
-    @distance_in_inches = (@distance / @pixel_to_inch).round(@r)
-    @distance_in_mm = (@distance / @pixel_to_mm).round(@r)
+    @distance_in_inches = (@distance / @pixel_to_inch).round(@round_to_nth_decimal)
+    @distance_in_mm = (@distance / @pixel_to_mm).round(@round_to_nth_decimal)
 
     if @unit == INCHES
       @text = "#{@distance_in_inches} inches"
     elsif @unit == FEET
-      @text = "#{(@distance_in_inches / 12).round(@r)} feet"
+      @text = "#{(@distance_in_inches / 12).round(@round_to_nth_decimal)} feet"
     elsif @unit == MM
       @text = "#{@distance_in_mm} mm"
     elsif @unit == CM
-      @text = "#{(@distance_in_mm / 10).round(@r)} cm"
+      @text = "#{(@distance_in_mm / 10).round(@round_to_nth_decimal)} cm"
     elsif @unit == M
-      @text = "#{(@distance_in_mm / 1000).round(@r)} meters"
+      @text = "#{(@distance_in_mm / 1000).round(@round_to_nth_decimal)} meters"
     else
-      @text = "#{@distance.round(@r)} pixels"
+      @text = "#{@distance.round(@round_to_nth_decimal)} pixels"
     end
   end
 
