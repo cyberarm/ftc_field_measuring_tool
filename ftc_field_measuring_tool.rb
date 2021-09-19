@@ -18,8 +18,8 @@ class Window < Gosu::Window
 
   def initialize
     super(800, 800, fullscreen: false)
-    self.caption = "Field Measuring Tool - FTC Skystone"
-    @field_image = Gosu::Image.new("media/skystone_field.png", retro: false)
+    self.caption = "Field Measuring Tool - FTC Freight Frenzy"
+    @field_image = Gosu::Image.new("media/freight_frenzy_field.png", retro: false)
     @font        = Gosu::Font.new(20, name: Gosu.default_font_name, bold: true)
     @distance    = 0
 
@@ -28,14 +28,14 @@ class Window < Gosu::Window
 
     @scale = width_scale < height_scale ? width_scale : height_scale
 
-    @origin = Vector2D.new((@field_image.width/2), (@field_image.height/2))
+    @origin = Vector2D.new((@field_image.width / 2), (@field_image.height / 2))
 
     @render_ui = true
     @text = ""
 
     # WHAT UNIT TO DISPLAY
     @unit = 0
-    @pixel_to_inch = 3.8333
+    @pixel_to_inch = 15.0
     @pixel_to_mm   = @pixel_to_inch / 25.4 # INCH TO MM
 
     @mode = LINE
